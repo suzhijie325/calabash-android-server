@@ -14,6 +14,7 @@ import java.lang.Override;
 import java.lang.Runnable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,11 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.jamy.helper.Contact;
+import com.jamy.helper.ContactsManager;
+
 import dalvik.system.DexClassLoader;
+import sh.calaba.instrumentationbackend.CalabashInstrumentationTestRunner;
 import sh.calaba.instrumentationbackend.Command;
 import sh.calaba.instrumentationbackend.FranklyResult;
 import sh.calaba.instrumentationbackend.InstrumentationBackend;
@@ -38,6 +43,7 @@ import sh.calaba.instrumentationbackend.query.QueryResult;
 import sh.calaba.instrumentationbackend.query.WebContainer;
 import sh.calaba.org.codehaus.jackson.map.ObjectMapper;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
@@ -49,7 +55,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AlphaAnimation;
 
-public class HttpServer extends NanoHTTPD {
+@SuppressLint("NewApi") public class HttpServer extends NanoHTTPD {
 	private static final String TAG = "InstrumentationBackend";
 	private boolean running = true;
 	private boolean ready = false;
@@ -70,6 +76,7 @@ public class HttpServer extends NanoHTTPD {
 			throw new IllegalStateException("Can only instantiate once!");
 		}
 		try {
+			Log.d("http", "http server port:" + testServerPort);
 			instance = new HttpServer(testServerPort);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -94,9 +101,13 @@ public class HttpServer extends NanoHTTPD {
 		System.out.println("URI: " + uri);
 		System.out.println("params: " + params);
 
-		if (uri.endsWith("/ping")) {
+		if (uri.endsWith("/ping")) {			
+			Date d = new Date();
 			return new NanoHTTPD.Response(HTTP_OK, MIME_HTML, "pong");
-
+		}
+		else if (uri.endsWith("/time")) {
+			Date d = new Date();
+			return new NanoHTTPD.Response(HTTP_OK, MIME_HTML, d.toString());
 		}
 		else if (uri.endsWith("/dump")) {
 			FranklyResult errorResult = null;
@@ -470,6 +481,43 @@ public class HttpServer extends NanoHTTPD {
             }
 
             return new NanoHTTPD.Response(HTTP_OK, "application/json;charset=utf-8", errorResult.asJson());
+        }
+        else if (uri.endsWith("/add-contact")){
+        	FranklyResult errorResult;
+            try {
+                String phone = (String) params.getProperty("phone");
+                String name = (String) params.getProperty("name");
+                
+                Log.d("http", "name:" + name + ",phone:"+phone);             
+                Context contextWrapper = CalabashInstrumentationTestRunner.context;              
+                ContactsManager cm = new ContactsManager(contextWrapper.getContentResolver());  
+                Contact contact = new Contact();  
+                contact.setName(name);  
+                contact.setEmail(phone + "@163.com");  
+                contact.setNumber(phone);  
+                cm.addContact(contact);
+                
+                return new NanoHTTPD.Response(HTTP_OK, "application/json;charset=utf-8", FranklyResult.emptyResult().asJson());
+            } catch (Exception e) {
+                e.printStackTrace();
+                errorResult = FranklyResult.fromThrowable(e);
+            }
+
+             return new NanoHTTPD.Response(HTTP_OK, "application/json;charset=utf-8", errorResult.asJson());	
+        } else if (uri.endsWith("/clear-contact")){     
+        	FranklyResult errorResult;
+        	
+        	try {
+	            Context contextWrapper = CalabashInstrumentationTestRunner.context;           
+	            ContactsManager cm = new ContactsManager(contextWrapper.getContentResolver());  
+	        	cm.delAllContacts(contextWrapper.getContentResolver());   
+	        	 return new NanoHTTPD.Response(HTTP_OK, "application/json;charset=utf-8", FranklyResult.emptyResult().asJson());
+        	}catch (Exception e) {
+                e.printStackTrace();
+                errorResult = FranklyResult.fromThrowable(e);
+            }
+        	
+        	return new NanoHTTPD.Response(HTTP_OK, "application/json;charset=utf-8", errorResult.asJson());
         }
 
 		System.out.println("header: " + header);

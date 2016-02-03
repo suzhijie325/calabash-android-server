@@ -4,7 +4,6 @@ import android.content.Context;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
@@ -55,12 +54,10 @@ public class InfoMethodUtil {
         return TextUtils.substring(editable, 0, editable.length()).length();
     }
 
-    public static Editable getEditable(View view, InputConnection inputConnection) {
+    public static Editable getEditable(View view) {
         Editable editable = null;
 
-        if (inputConnection instanceof BaseInputConnection) {
-            editable = ((BaseInputConnection) inputConnection).getEditable();
-        } else if (view instanceof TextView) {
+        if (view instanceof TextView) {
             editable = ((TextView) view).getEditableText();
         } else {
             try {

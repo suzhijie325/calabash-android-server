@@ -3,6 +3,7 @@ package sh.calaba.instrumentationbackend;
 import java.lang.reflect.Method;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import sh.calaba.instrumentationbackend.actions.HttpServer;
 import android.content.Context;
@@ -15,10 +16,12 @@ import android.os.Bundle;
 import android.test.InstrumentationTestRunner;
 
 public class CalabashInstrumentationTestRunner extends InstrumentationTestRunner {
-	@Override
+	static public Context context;
+	@SuppressLint("NewApi") @Override
     public void onCreate(Bundle arguments) {
         StatusReporter statusReporter = new StatusReporter(getContext());
-
+        context = getContext();
+        
         try {
             final String mainActivity;
 

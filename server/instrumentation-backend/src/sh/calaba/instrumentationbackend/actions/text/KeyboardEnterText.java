@@ -29,7 +29,7 @@ public class KeyboardEnterText extends TextAction {
 
     @Override
     protected Result executeOnUIThread(final View servedView, final InputConnection inputConnection) {
-        final Editable editable = InfoMethodUtil.getEditable(servedView, inputConnection);
+        final Editable editable = InfoMethodUtil.getEditable(servedView);
 
         if (Build.VERSION.SDK_INT >= 9) {
             int start = Selection.getSelectionStart(editable);

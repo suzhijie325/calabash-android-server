@@ -37,7 +37,7 @@ public class SetComposingRegion extends TextAction {
             return Result.failedResult("Cannot set composing region on Android < 9");
         }
 
-        final Editable editable = InfoMethodUtil.getEditable(servedView, inputConnection);
+        final Editable editable = InfoMethodUtil.getEditable(servedView);
 
         // Find length of non-formatted text
         int textLength = InfoMethodUtil.getEditableTextLength(editable);
